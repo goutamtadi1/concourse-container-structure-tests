@@ -1,0 +1,34 @@
+#! /bin/sh
+
+set -e
+
+source $(dirname $0)/common.sh
+
+# for jq
+PATH=/usr/local/bin:$PATH
+
+payload=$(mktemp /tmp/resource-in.XXXXXX)
+
+cat > $payload <&0
+
+username=$(jq -r '.source.username // ""' < $payload)
+password=$(jq -r '.source.password // ""' < $payload)
+repository="$(jq -r '.source.repository // ""' < $payload)"
+tag="$(jq -r '.source.tag // "latest"' < $payload)"
+
+config
+max_concurrent_downloads=$(jq -r '.source.max_concurrent_downloads // 3' < $payload)
+max_concurrent_uploads=$(jq -r '.source.max_concurrent_uploads // 3' < $payload)
+
+start_docker \
+    "${max_concurrent_downloads}" \
+    "${max_concurrent_uploads}"
+
+image_name="${repository}:${tag}"
+
+log_in "$username" "$password" "$registry"
+docker_pull "$image_name"
+
+set -x
+  container-structure-test test --image "${image_name}" --config ${docker_test_file}
+set +x
