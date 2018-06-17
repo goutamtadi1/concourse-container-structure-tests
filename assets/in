@@ -16,7 +16,6 @@ password=$(jq -r '.source.password // ""' < $payload)
 repository="$(jq -r '.source.repository // ""' < $payload)"
 tag="$(jq -r '.source.tag // "latest"' < $payload)"
 
-config
 max_concurrent_downloads=$(jq -r '.source.max_concurrent_downloads // 3' < $payload)
 max_concurrent_uploads=$(jq -r '.source.max_concurrent_uploads // 3' < $payload)
 
